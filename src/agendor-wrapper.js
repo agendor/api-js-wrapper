@@ -19,7 +19,7 @@
         var organization = deal.organization;
 
         var createXMLHttp = function(route, token){
-            var AGENDOR_API_URL = 'http://localhost:8000';//TODO: CHANGE TO A VALID URL
+            var AGENDOR_API_URL = 'https://api.agendor.com.br/v1';
 
             //Initializing our object
             var xmlHttp = null;
@@ -41,8 +41,7 @@
             var routeRequested = AGENDOR_API_URL.concat(route);
             xmlHttp.open('post', routeRequested, true);
             xmlHttp.setRequestHeader("Content-Type", "application/json");
-            xmlHttp.setRequestHeader("Authorization", "Basic "+token);
-            //  xmlHttp.setRequestHeader("Authorization", "Bearer "+token);
+            xmlHttp.setRequestHeader("Authorization", "Token "+token);
 
             return xmlHttp;
         };
