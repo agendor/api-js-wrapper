@@ -1,3 +1,6 @@
+/**
+ * Group of functions to allow easy access to Agendor API https://api.agendor.com.br
+ */
 (function(){
     "use strict";
 
@@ -19,16 +22,20 @@
 
     agendor.deal = {
         add: function(deal, callback){
+            var dealResult, personResult, organizationResult;
+
+            //get person/organization
             var person = deal.person;
             var organization = deal.organization;
 
+            //verify which object will be inserted. if person and organization were set together an error is thrown!
             if(person){
                 var personRequest = createXMLHttp("/people");
                 personRequest.onreadystatechange = function() {
                     if (personRequest.readyState === 4) {
                         if (personRequest.status === 201) {
-                            person = JSON.parse(personRequest.responseText);
-                            insertDeal(person.personId, callback);
+                            personResult = JSON.parse(personRequest.responseText);
+                            insertDeal(personResult.personId, callback);
                         } else {
                             var response = JSON.parse(personRequest.responseText);
                             throw response.message;
@@ -36,13 +43,14 @@
                     }
                 };
                 personRequest.send(JSON.stringify(person));
+
             }else if(organization){
                 var organizationRequest = createXMLHttp("/organizations");
                 organizationRequest.onreadystatechange = function() {
                     if (organizationRequest.readyState === 4) {
                         if (organizationRequest.status === 201) {
-                            organization = JSON.parse(organizationRequest.responseText);
-                            insertDeal(organization.organizationId, callback);
+                            organizationResult = JSON.parse(organizationRequest.responseText);
+                            insertDeal(organizationResult.organizationId, callback);
                         } else {
                             var response = JSON.parse(organizationRequest.responseText);
                             throw response.message;
@@ -50,11 +58,13 @@
                     }
                 };
                 organizationRequest.send(JSON.stringify(organization));
+
             }else{
                 throw "ERROR: A person or organization is required to insert a deal";
             }
 
             function insertDeal(id, callback){
+                //to insert a deal we just need the id of person or organization.
                 if(person){
                     deal.person = id;
                     person.personId = id;
@@ -63,18 +73,21 @@
                     deal.organization = id;
                     organization.organizationId = id;
                 }
+
                 var dealRequest = createXMLHttp("/deals");
                 dealRequest.onreadystatechange = function() {
                     if (dealRequest.readyState === 4) {
                         if (dealRequest.status === 201) {
-                            deal = JSON.parse(dealRequest.responseText);
+                            dealResult = JSON.parse(dealRequest.responseText);
+                            //set the person/organization on the deal object;
                             if(person){
-                                deal.person = person;
+                                dealResult.person = personResult;
                             }
                             if(organization){
-                                deal.organization = organization;
+                                dealResult.organization = organizationResult;
                             }
-                            callback(deal);
+                            //send the result to callback function
+                            callback(dealResult);
                         }else{
                             var response = JSON.parse(dealRequest.responseText);
                             throw response.message;
@@ -82,6 +95,8 @@
                     }
                 };
                 dealRequest.send(JSON.stringify(deal));
+                deal.person = person;
+                deal.organization = organization;
             }
         }
     };
