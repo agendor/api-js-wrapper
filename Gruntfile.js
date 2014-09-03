@@ -14,7 +14,7 @@ module.exports = function(grunt) {
             }
         },
         jshint: { //docs: http://www.jshint.com/docs/options/
-            src: ['**/*.js', '!node_modules/**/*.js'],
+            src: ['src/*.js', '!node_modules/**/*.js'],
             options: {
                 curly: true,
                 eqeqeq: true,
@@ -29,6 +29,14 @@ module.exports = function(grunt) {
                     run: false
                 }
             }
+        },
+        copy: {
+            main: {
+                cwd: 'dist/',
+                src: '*.js',
+                dest: 'examples/js/lib/',
+                expand: true
+            }
         }
     });
 
@@ -36,8 +44,9 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-mocha');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     // Default task(s).
-    grunt.registerTask('default', ['uglify', 'jshint', 'mocha']);
+    grunt.registerTask('default', ['jshint', 'mocha', 'uglify', 'copy']);
 
 };

@@ -7,6 +7,13 @@
     var root = this;
     var previous_agendor = root.agendor;
 
+    var constants = {
+        AGENDOR_API_URL: 'http://localhost:8000',
+        PERSON_ROUTE : '/people',
+        ORGANIZATION_ROUTE: '/organizations',
+        DEAL_ROUTE: '/deals'
+    };
+
     var agendor = function(){
         this.token = null;
     };
@@ -22,89 +29,115 @@
 
     agendor.deal = {
         add: function(deal, callback){
-            var dealResult, personResult, organizationResult;
-
+            //clone deal parameter to avoid changes in the original deal object
+            var dealClone = JSON.parse(JSON.stringify(deal));
             //get person/organization
             var person = deal.person;
             var organization = deal.organization;
 
-            //verify which object will be inserted. if person and organization were set together an error is thrown!
-            if(person){
-                var personRequest = createXMLHttp("/people");
+            if(person && !organization){ //insert just a person
+                var personRequest = createXMLHttp(constants.PERSON_ROUTE);
                 personRequest.onreadystatechange = function() {
                     if (personRequest.readyState === 4) {
                         if (personRequest.status === 201) {
-                            personResult = JSON.parse(personRequest.responseText);
-                            insertDeal(personResult.personId, callback);
+                            person = JSON.parse(personRequest.responseText);
+                            //to insert a deal with a person, we just need the personId
+                            dealClone.person = person.personId;
+                            insertDeal();
                         } else {
-                            var response = JSON.parse(personRequest.responseText);
-                            throw response.message;
+                            var error = JSON.parse(personRequest.responseText);
+                            callback({
+                                error: error
+                            });
                         }
                     }
                 };
                 personRequest.send(JSON.stringify(person));
 
-            }else if(organization){
-                var organizationRequest = createXMLHttp("/organizations");
-                organizationRequest.onreadystatechange = function() {
-                    if (organizationRequest.readyState === 4) {
-                        if (organizationRequest.status === 201) {
-                            organizationResult = JSON.parse(organizationRequest.responseText);
-                            insertDeal(organizationResult.organizationId, callback);
+            }else if(!person && organization){ //insert just an organization
+                var orgRequest = createXMLHttp(constants.ORGANIZATION_ROUTE);
+                orgRequest.onreadystatechange = function() {
+                    if (orgRequest.readyState === 4) {
+                        if (orgRequest.status === 201) {
+                            organization = JSON.parse(orgRequest.responseText);
+                            //to insert a deal with an organization, we just need the organizationId
+                            dealClone.organization = organization.organizationId;
+                            insertDeal();
                         } else {
-                            var response = JSON.parse(organizationRequest.responseText);
-                            throw response.message;
+                            errorHandler(JSON.parse(orgRequest.responseText, callback));
                         }
                     }
                 };
-                organizationRequest.send(JSON.stringify(organization));
+                orgRequest.send(JSON.stringify(organization));
 
-            }else{
-                throw "ERROR: A person or organization is required to insert a deal";
+            }else if(person && organization){ //insert a person and an organization
+                //first, insert the person
+                var personReq = createXMLHttp(constants.PERSON_ROUTE);
+                personReq.onreadystatechange = function() {
+                    if (personReq.readyState === 4) {
+                        if (personReq.status === 201) {
+                            person = JSON.parse(personReq.responseText);
+                            //to insert a deal with a person, we just need the personId
+                            dealClone.person = person.personId;
+
+                            //now, insert the organization
+                            var orgRequest = createXMLHttp(constants.ORGANIZATION_ROUTE);
+                            orgRequest.onreadystatechange = function() {
+                                if (orgRequest.readyState === 4) {
+                                    if (orgRequest.status === 201) {
+                                        organization = JSON.parse(orgRequest.responseText);
+                                        //to insert a deal with an organization, we just need the organizationId
+                                        dealClone.organization = organization.organizationId;
+                                        //and now, the deal
+                                        insertDeal();
+                                    } else {
+                                        errorHandler(JSON.parse(orgRequest.responseText, callback));
+                                    }
+                                }
+                            };
+                            orgRequest.send(JSON.stringify(organization));
+                        } else {
+                            errorHandler(JSON.parse(personReq.responseText, callback));
+                        }
+                    }
+                };
+                personReq.send(JSON.stringify(person));
+            }else if(!person && !organization){ // do not insert a person or a company
+                insertDeal();
             }
 
-            function insertDeal(id, callback){
-                //to insert a deal we just need the id of person or organization.
-                if(person){
-                    deal.person = id;
-                    person.personId = id;
-                }
-                if(organization){
-                    deal.organization = id;
-                    organization.organizationId = id;
-                }
-
-                var dealRequest = createXMLHttp("/deals");
-                dealRequest.onreadystatechange = function() {
-                    if (dealRequest.readyState === 4) {
-                        if (dealRequest.status === 201) {
-                            dealResult = JSON.parse(dealRequest.responseText);
-                            //set the person/organization on the deal object;
+            function insertDeal(){
+                var xmlHttp = createXMLHttp(constants.DEAL_ROUTE);
+                xmlHttp.onreadystatechange = function() {
+                    if (xmlHttp.readyState === 4) {
+                        if (xmlHttp.status === 201) {
+                            var dealResult = JSON.parse(xmlHttp.responseText);
+                            //set the person/organization back on the deal object;
                             if(person){
-                                dealResult.person = personResult;
+                                dealResult.person = person;
                             }
                             if(organization){
-                                dealResult.organization = organizationResult;
+                                dealResult.organization = organization;
                             }
                             //send the result to callback function
                             callback(dealResult);
                         }else{
-                            var response = JSON.parse(dealRequest.responseText);
-                            throw response.message;
+                            errorHandler(JSON.parse(xmlHttp.responseText, callback));
                         }
                     }
                 };
-                dealRequest.send(JSON.stringify(deal));
-                deal.person = person;
-                deal.organization = organization;
+                xmlHttp.send(JSON.stringify(dealClone));
             }
         }
     };
 
-    function createXMLHttp(route){
-        var AGENDOR_API_URL = 'https://api.agendor.com.br/v1';
-        var token = agendor.token;
+    function errorHandler(error, callback){
+        callback({
+            error: error
+        });
+    }
 
+    function createXMLHttp(route){
         //Initializing our object
         var xmlHttp = null;
         //if XMLHttpRequest is available (chrome, firefox, opera...) then creating and returning it
@@ -121,10 +154,10 @@
                 } catch (e) {}
             }
         }
-        var routeRequested = AGENDOR_API_URL.concat(route);
+        var routeRequested = constants.AGENDOR_API_URL.concat(route);
         xmlHttp.open('post', routeRequested, true);
         xmlHttp.setRequestHeader("Content-Type", "application/json");
-        xmlHttp.setRequestHeader("Authorization", "Token "+token);
+        xmlHttp.setRequestHeader("Authorization", "Token "+agendor.token);
 
         return xmlHttp;
     }
