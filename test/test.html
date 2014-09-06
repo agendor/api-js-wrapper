@@ -25,9 +25,11 @@
     <!-- Include anything you want to test -->
     <script src="../src/agendor-wrapper.js" type="text/javascript" charset="utf-8"></script>
     <!-- Spec files -->
-    <script src="spec/agendor-wrapper-spec.js" type="text/javascript" charset="utf-8"></script>
+    <script src="spec/agendor-wrapper-person-spec.js" type="text/javascript" charset="utf-8"></script>
+    <script src="spec/agendor-wrapper-deal-spec.js" type="text/javascript" charset="utf-8"></script>
     <!-- run mocha -->
     <script type="text/javascript" charset="utf-8">
+        agendor.setToken('INSERT A VALID TOKEN HERE');
         mocha.run();
     </script>
 </body>
