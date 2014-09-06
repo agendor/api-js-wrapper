@@ -29,19 +29,40 @@
 
     agendor.person = {
         add: function(person, callback){
-            //TODO: verify if person.organization is set
-            var personRequest = createXMLHttp(constants.PERSON_ROUTE);
-            personRequest.onreadystatechange = function() {
-                if (personRequest.readyState === 4) {
-                    if (personRequest.status === 201) {
-                        var personInserted = JSON.parse(personRequest.responseText);
-                        callback(personInserted);
-                    } else {
-                        errorHandler(JSON.parse(personRequest.responseText), callback);
+            if(person.organization){
+                var organization = person.organization;
+                var orgRequest = createXMLHttp(constants.ORGANIZATION_ROUTE);
+                orgRequest.onreadystatechange = function() {
+                    if (orgRequest.readyState === 4) {
+                        if (orgRequest.status === 201) {
+                            var orgInserted = JSON.parse(orgRequest.responseText);
+                            person.organization = orgInserted.organizationId;
+                            insertPerson();
+                        } else {
+                            errorHandler(JSON.parse(orgRequest.responseText), callback);
+                            //TODO: If organization was already inserted, call get /organizations
+                        }
                     }
-                }
-            };
-            personRequest.send(JSON.stringify(person));
+                };
+                orgRequest.send(JSON.stringify(organization));
+            }else{
+                insertPerson();
+            }
+
+            function insertPerson(){
+                var personRequest = createXMLHttp(constants.PERSON_ROUTE);
+                personRequest.onreadystatechange = function() {
+                    if (personRequest.readyState === 4) {
+                        if (personRequest.status === 201) {
+                            var personInserted = JSON.parse(personRequest.responseText);
+                            callback(personInserted);
+                        } else {
+                            errorHandler(JSON.parse(personRequest.responseText), callback);
+                        }
+                    }
+                };
+                personRequest.send(JSON.stringify(person));
+            }
         }
     };
 

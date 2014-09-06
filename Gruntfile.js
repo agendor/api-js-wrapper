@@ -14,7 +14,7 @@ module.exports = function(grunt) {
             }
         },
         jshint: { //docs: http://www.jshint.com/docs/options/
-            src: ['src/*.js', '!node_modules/**/*.js'],
+            src: ['src/*.js'],
             options: {
                 curly: true,
                 eqeqeq: true,
