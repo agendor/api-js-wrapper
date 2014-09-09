@@ -29,40 +29,18 @@
 
     agendor.person = {
         add: function(person, callback){
-            if(person.organization){
-                var organization = person.organization;
-                var orgRequest = createXMLHttp(constants.ORGANIZATION_ROUTE);
-                orgRequest.onreadystatechange = function() {
-                    if (orgRequest.readyState === 4) {
-                        if (orgRequest.status === 201) {
-                            var orgInserted = JSON.parse(orgRequest.responseText);
-                            person.organization = orgInserted.organizationId;
-                            insertPerson();
-                        } else {
-                            errorHandler(JSON.parse(orgRequest.responseText), callback);
-                            //TODO: If organization was already inserted, call get /organizations
-                        }
+            var personRequest = createXMLHttp(constants.PERSON_ROUTE);
+            personRequest.onreadystatechange = function() {
+                if (personRequest.readyState === 4) {
+                    if (personRequest.status === 201) {
+                        var personInserted = JSON.parse(personRequest.responseText);
+                        callback(personInserted);
+                    } else {
+                        errorHandler(JSON.parse(personRequest.responseText), callback);
                     }
-                };
-                orgRequest.send(JSON.stringify(organization));
-            }else{
-                insertPerson();
-            }
-
-            function insertPerson(){
-                var personRequest = createXMLHttp(constants.PERSON_ROUTE);
-                personRequest.onreadystatechange = function() {
-                    if (personRequest.readyState === 4) {
-                        if (personRequest.status === 201) {
-                            var personInserted = JSON.parse(personRequest.responseText);
-                            callback(personInserted);
-                        } else {
-                            errorHandler(JSON.parse(personRequest.responseText), callback);
-                        }
-                    }
-                };
-                personRequest.send(JSON.stringify(person));
-            }
+                }
+            };
+            personRequest.send(JSON.stringify(person));
         }
     };
 
@@ -76,17 +54,18 @@
                 agendor.person.add(person, function(result){
                     if(result.error){
                         errorHandler(result.error, callback);
+                    }else{
+                        personInserted = JSON.parse(JSON.stringify(result));
+                        dealClone.person = result.personId;
+                        insertDeal();
                     }
-                    personInserted = JSON.parse(JSON.stringify(result));
-                    dealClone.person = result.personId;
-                    insertDeal();
                 });
             }else{
                 insertDeal();
             }
 
             function insertDeal(){
-                dealClone.dealStageOrder = 1;
+                dealClone.dealStageOrder = 1; //Force Agendor API to insert a deal with Stage='Contact'
                 var xmlHttp = createXMLHttp(constants.DEAL_ROUTE);
                 xmlHttp.onreadystatechange = function() {
                     if (xmlHttp.readyState === 4) {

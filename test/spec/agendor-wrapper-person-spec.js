@@ -36,7 +36,7 @@ describe('Use Agendor Wrapper', function(){
         });
     });
 
-    describe('to insert a person, with the organization field set:', function(){
+    describe.skip('to insert a person, with the organization field set:', function(){
         var person = {
             name: 'Person to contact ' + Math.random(),
             cpf: '' + Math.floor(Math.random() * 99999999999),
