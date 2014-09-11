@@ -11,7 +11,8 @@
         AGENDOR_API_URL: 'https://api.agendor.com.br/v1',
         PERSON_ROUTE : '/people',
         ORGANIZATION_ROUTE: '/organizations',
-        DEAL_ROUTE: '/deals'
+        DEAL_ROUTE: '/deals',
+        TASK_ROUTE: '/tasks'
     };
 
     var agendor = function(){
@@ -82,6 +83,40 @@
                 };
                 xmlHttp.send(JSON.stringify(dealClone));
             }
+        }
+    };
+
+    agendor.task = {
+        add: function(task, callback){
+            //clone task parameter to avoid changes in the original object
+            var taskClone = JSON.parse(JSON.stringify(task));
+            var deal = task.deal;
+            var dealInserted = null;
+
+            agendor.deal.add(deal, function(result){
+                if(result.error){
+                    errorHandler(result.error, callback);
+                }else{
+                    dealInserted = JSON.parse(JSON.stringify(result));
+                    taskClone.deal = result.dealId;
+
+                    var xmlHttp = createXMLHttp(constants.TASK_ROUTE);
+                    xmlHttp.onreadystatechange = function() {
+                        if (xmlHttp.readyState === 4) {
+                            if (xmlHttp.status === 201) {
+                                var taskResult = JSON.parse(xmlHttp.responseText);
+                                //set the person back on the deal object;
+                                taskResult.deal = dealInserted;
+                                //send the result to callback function
+                                callback(taskResult);
+                            }else{
+                                errorHandler(JSON.parse(xmlHttp.responseText, callback));
+                            }
+                        }
+                    };
+                    xmlHttp.send(JSON.stringify(taskClone));
+                }
+            });
         }
     };
 

@@ -28,7 +28,7 @@ describe('Use Agendor Wrapper', function(){
                 }
             }
         };
-        it('should return a deal with all fields inserted (including the person)', function(){
+        it('should return a deal with all fields inserted (including the person)', function(done){
             agendor.deal.add(deal, function(result){
                 result.dealId.should.not.to.be.null;
                 result.title.should.equal(deal.title);
@@ -36,10 +36,6 @@ describe('Use Agendor Wrapper', function(){
                 result.person.personId.should.not.to.be.null;
                 result.person.name.should.not.to.be.null;
                 result.person.name.should.equal(deal.person.name);
-                result.person.phones.should.equal(deal.person.phones);
-                result.person.emails[0].should.equal(deal.person.emails[0]);
-                result.person.social.should.equal(deal.person.social);
-                result.person.address.should.equal(deal.person.address);
                 done();
             });
         });
@@ -50,11 +46,12 @@ describe('Use Agendor Wrapper', function(){
                 description: 'This deal was created through the wrapper, without any person related to it.',
                 value: 99999.99
             };
-            it('should return a deal with all fields inserted', function () {
+            it('should return a deal with all fields inserted', function (done) {
                 agendor.deal.add(deal, function (result) {
                     result.dealId.should.not.to.be.null;
                     result.title.should.equal(deal.title);
                     result.description.should.equal(deal.description);
+                    parseFloat(result.value).should.equal(deal.value);
                     done();
                 });
             });
