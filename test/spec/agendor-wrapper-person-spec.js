@@ -33,7 +33,7 @@ describe('Use Agendor Wrapper', function(){
         });
     });
 
-    describe.skip('to insert a person, with the organization field set:', function(){
+    describe('to insert a person, with the organization field set:', function(){
         var person = {
             name: 'Person to contact ' + Math.random(),
             cpf: '' + Math.floor(Math.random() * 99999999999),
@@ -58,7 +58,7 @@ describe('Use Agendor Wrapper', function(){
                 city: 'São Paulo'
             }
         };
-        it('should return a person with all fields inserted', function(done){
+        it('should return a person with all fields inserted (including the organization)', function(done){
             agendor.person.add(person, function(result){
                 result.personId.should.not.to.be.null;
                 result.name.should.not.to.be.null;
