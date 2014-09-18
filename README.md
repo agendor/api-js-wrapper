@@ -17,7 +17,9 @@ Here is what you have to do to start to use Agendor-Wrapper:
 ```html
 <!--You'll need to include this file on any page you want to use the *Agendor-Wrapper*:-->
 <script src="agendor-wrapper.min.js"></script>
+<!--You'll find this file on /dist folder-->
 ```
+
 <br/>
 Once you've included the file, *Agendor-Wrapper* will create an `agendor` variable in the global context and, through this variable, you'll have access to all Agendor-Wrapper's features. 
 <br/>
