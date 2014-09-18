@@ -32,10 +32,10 @@ module.exports = function(grunt) {
         },
         copy: {
             main: {
-                cwd: 'dist/',
-                src: '*.js',
-                dest: 'examples/js/lib/',
-                expand: true
+                files: [
+                    {cwd: 'src/', src: '*.js', dest: 'dist/', expand: true},
+                    {cwd: 'dist/', src: '*.min.js', dest: 'examples/js/lib/', expand: true}
+                ]
             }
         }
     });
