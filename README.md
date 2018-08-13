@@ -1,4 +1,14 @@
-# [Agendor-Wrapper](https://github.com/agendor/api-js-wrapper)
+##############################################################
+
+## DEPRECATED
+
+We don't support this wrapper anymore and we recommend using the new [API V3](https://api.agendor.com.br/).  
+Also, this wrapper may have security risks if used in the front-end.
+
+##############################################################
+
+
+## [Agendor-Wrapper](https://github.com/agendor/api-js-wrapper)
 
 A group of functions to allow easy access to [Agendor API](https://api.agendor.com.br):
 
